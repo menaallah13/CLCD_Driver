@@ -1,0 +1,125 @@
+/* Author  : Menna mostafa */
+/* Version : V1.0         */
+/* Date    : 14 Jan 2020 */
+#include "STD_Types.h"
+#include "BIT_MATH.h"
+#include "DIO_interface.h"
+#include "PORT_interface.h"
+#include "CLcd_config.h"
+#include "CLcd_private.h"
+#include "CLcd_interface.h"
+#include <util/delay.h>
+
+
+/* Description : This API shall initialize LCD */
+void CLCD_voidInitialize(void)
+{
+	/* Wait for more than 30ms after VDD rises to 4.5V */
+	//Delay(40);
+	_delay_ms(40);
+	CLcd_voidWriteCmd(0b00111000);
+	//_delay_ms(4);
+	CLcd_voidWriteCmd(0b00001100);
+	CLcd_voidWriteCmd(0b00000001);
+	_delay_ms(2);
+}
+
+/* Description : This API shall display data on LCD */
+void CLcd_voidWriteData(u8 Copy_u8Data)
+{
+	//u8 Local_u8BitVal;
+	/* Set RS = 1 */
+	SetPinValue(CLCD_u8_RS_PORT,CLCD_u8_RS_PIN,1);
+	/* Set RW = 0 */
+	SetPinValue(CLCD_u8_RW_PORT,CLCD_u8_RW_PIN,0);
+	/* Set data on data port */
+	CLCD_voidSetDataPort(Copy_u8Data);
+	/* Enable pulse */
+	SetPinValue(CLCD_u8_E_PORT,CLCD_u8_E_PIN,1);
+	//Delay(1);
+	_delay_ms(1);
+	SetPinValue(CLCD_u8_E_PORT,CLCD_u8_E_PIN,0);
+	//Delay(1);
+	_delay_ms(1);
+}
+
+/* Description : This API shall execute command on LCD */
+void CLcd_voidWriteCmd(u8 Copy_u8Cmd)
+{
+	//u8 Local_u8BitVal;
+	/* Set RS = 0 */
+	SetPinValue(CLCD_u8_RS_PORT,CLCD_u8_RS_PIN,0);
+
+	/* Set RW = 0 */
+	SetPinValue(CLCD_u8_RW_PORT,CLCD_u8_RW_PIN,0);
+	/* Set data on data port */
+
+	CLCD_voidSetDataPort(Copy_u8Cmd);
+	/* Enable pulse */
+	SetPinValue(CLCD_u8_E_PORT,CLCD_u8_E_PIN,1);
+	//Delay(1);
+	_delay_ms(1);
+	SetPinValue(CLCD_u8_E_PORT,CLCD_u8_E_PIN,0);
+	//Delay(1);
+	_delay_ms(1);
+}
+
+static void CLCD_voidSetDataPort(u8 Copy_u8Data)
+{	
+	u8 Local_u8BitVal;
+
+	Local_u8BitVal = GET_BIT(Copy_u8Data,0);
+	SetPinValue(CLCD_u8_DATA_PORT,CLCD_u8_D0,Local_u8BitVal);
+	
+	Local_u8BitVal = GET_BIT(Copy_u8Data,1);
+	SetPinValue(CLCD_u8_DATA_PORT,CLCD_u8_D1,Local_u8BitVal);
+	
+	Local_u8BitVal = GET_BIT(Copy_u8Data,2);
+	SetPinValue(CLCD_u8_DATA_PORT,CLCD_u8_D2,Local_u8BitVal);
+	
+	Local_u8BitVal = GET_BIT(Copy_u8Data,3);
+	SetPinValue(CLCD_u8_DATA_PORT,CLCD_u8_D3,Local_u8BitVal);
+	
+	Local_u8BitVal = GET_BIT(Copy_u8Data,4);
+	SetPinValue(CLCD_u8_DATA_PORT,CLCD_u8_D4,Local_u8BitVal);
+	
+	Local_u8BitVal = GET_BIT(Copy_u8Data,5);
+	SetPinValue(CLCD_u8_DATA_PORT,CLCD_u8_D5,Local_u8BitVal);
+	
+	Local_u8BitVal = GET_BIT(Copy_u8Data,6);
+	SetPinValue(CLCD_u8_DATA_PORT,CLCD_u8_D6,Local_u8BitVal);
+	
+	Local_u8BitVal = GET_BIT(Copy_u8Data,7);
+	SetPinValue(CLCD_u8_DATA_PORT,CLCD_u8_D7,Local_u8BitVal);
+}
+
+/* CLCD_voidGotoXYPos to set cursor on specific position x,y */
+void CLCD_voidGotoXYPos(u8 Copy_u8XPos,u8 Copy_u8YPos)
+{
+	u8 Local_u8DDRAMAddress;
+	if(Copy_u8YPos == CLCD_u8_LINE_ONE)
+	{
+		Local_u8DDRAMAddress = Copy_u8XPos;
+	}
+	else if(Copy_u8YPos == CLCD_u8_LINE_TWO)
+	{
+		Local_u8DDRAMAddress = Copy_u8XPos + CLCD_u8_LINE_TWO_ADD_OFFSET;
+	}
+	else
+	{
+
+	}
+	/*Set Bit7 = 1*/
+	CLcd_voidWriteCmd(Local_u8DDRAMAddress | CLCD_u8_SET_DDRAM_ADD_COMM);
+
+}
+
+/* we write char not u8 to avoid warning */
+void CLCD_voidWriteString(const char* Copy_pchString)
+{
+	while(*Copy_pchString!='\0')
+	{
+		CLcd_voidWriteData(*Copy_pchString);
+		Copy_pchString++;
+	}
+}
